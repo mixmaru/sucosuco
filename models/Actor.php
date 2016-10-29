@@ -2,93 +2,45 @@
 
 namespace app\models;
 
-use yii\base\UnknownPropertyException;
-use yii\db\ActiveRecord;
-use yii\behaviors\TimestampBehavior;
-use yii\db\Expression;
+use yii\base\Model;
 
-class Actor extends ActiveRecord
-{
-    const TYPE_AV = 1;  //AV女優
-    const TYPE_TV = 2;  //芸能人
+class Actor extends Model {
+    public $id;
+    public $type;
+    public $key_name;
+    public $first_name;
+    public $middle_name;
+    public $last_name;
+    public $profile_image_paths = [];
 
-    public function behaviors(){
-        return [
-            [
-                'class' => TimestampBehavior::className(),
-                'createdAtAttribute' => 'created',
-                'updatedAtAttribute' => 'updated',
-                'value' => new Expression('NOW()'),
-            ],
-        ];
-    }
-    public function getArticles(){
-        return $this->hasMany(Article::className(), ['id' => 'article_id'])->viaTable('article_actor', ['actor_id' => 'id']);
-    }
-    public function getActorTextProperties(){
-        return $this->hasMany(ActorTextProperty::className(), ['actor_id' => 'id']);
-    }
-    public function getTexts(){
-        return $this->hasMany(Text::className(), ['id' => 'text_id'])->via('actorTextProperties');
-    }
-
-    public function getFirstName($lang_id){
-        return "first_name";
-    }
-
-    static function saveNewAvActor($key_name, $lang_id, $first_name, $middle_name, $last_name, array $thumb_url = []){
-        //todo: 文字数制限チェックと画像urlの登録
-        $profiles = ['first_name', 'middle_name', 'last_name'];
-        $transaction = self::getDb()->beginTransaction();
-        try{
-            //女優を新規登録
-            $actor = new Actor();
-            $actor->key_name = $key_name;
-            $actor->type = self::TYPE_AV;
-            $actor->save();
-
-            //名前を新規登録
-            $name_ids = [];
-            foreach($profiles as $profile){
-                if(!empty($$profile)){
-                    $text = new Text();
-                    $text->text = $$profile;
-                    $text->save();
-                    $name_ids[$profile] = $text->id;
-                }
-            }
-
-            //女優プロフィール関連テーブルに保存
-            foreach($profiles as $profile){
-                if(!empty($$profile)){
-                    $text_property = TextProperty::findOne(['name' => "actor_".$profile]);
-                    $actor_text_profile = new ActorTextProperty();
-                    $actor_text_profile->actor_id = $actor->id;
-                    $actor_text_profile->text_property_id = $text_property->id;
-                    $actor_text_profile->language_id = $lang_id;
-                    $actor_text_profile->text_id = $name_ids[$profile];
-                    $actor_text_profile->save();
-                }
-            }
-        }catch(\Exception $e){
-            $transaction->rollBack();
-            throw $e;
+    public static function getInstanceById($id, $language_id){
+        $actor = new Actor();
+        $actor->loadFromDbById($id, $language_id);
+        if(is_null($actor->id)){
+            return false;
+        }else{
+            return $actor;
         }
-        $transaction->commit();
-        return true;
     }
 
-    /**
-     * 女優名から存在確認する。
-     * @param string $name  女優名
-     * @param string $lang  言語
-     * @return bool
-     */
-    static public function existCheckByName($name, $lang){
-        /*todo:
-        $nameからす
-
-        */
-        return true;
+    public function loadFromDbById($id, $language_id){
+        $db = \Yii::$app->db;
+        $sql = "SELECT ac.id as id, ac.type as type, ac.key_name as key_name, "
+            ."MAX( CASE WHEN atp.text_property_id = 1 THEN t.text ELSE NULL END) as first_name, "
+            ."MAX( CASE WHEN atp.text_property_id = 2 THEN t.text ELSE NULL END) as middle_name, "
+            ."MAX( CASE WHEN atp.text_property_id = 3 THEN t.text ELSE NULL END) as last_name "
+            ."FROM actor ac "
+            ."INNER JOIN actor_text_property atp ON atp.actor_id = ac.id "
+            ."INNER JOIN text t ON t.id = atp.text_id "
+            ."WHERE ac.id = :id "
+            ."AND atp.language_id = :language_id "
+            ."GROUP BY id ";
+        $param = $db->createCommand($sql, [':id' => $id, ':language_id' => $language_id ])->queryOne();
+        $this->id = $param['id'];
+        $this->type = $param['type'];
+        $this->key_name = $param['key_name'];
+        $this->first_name = $param['first_name'];
+        $this->middle_name = $param['middle_name'];
+        $this->last_name = $param['last_name'];
     }
 }
