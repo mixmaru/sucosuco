@@ -18,4 +18,13 @@ class ActorTextProperty extends ActiveRecord
             ],
         ];
     }
+    public function getActor(){
+        return $this->hasOne(Actor::className(), ['id' => 'actor_id']);
+    }
+    public function getTextProperty(){
+        return $this->hasOne(TextProperty::className(), ['id' => 'text_property_id']);
+    }
+    public function getText(){
+        return $this->hasOne(Text::className(), ['id' => 'text_id']);
+    }
 }

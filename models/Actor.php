@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use yii\base\UnknownPropertyException;
 use yii\db\ActiveRecord;
 use yii\behaviors\TimestampBehavior;
 use yii\db\Expression;
@@ -23,6 +24,16 @@ class Actor extends ActiveRecord
     }
     public function getArticles(){
         return $this->hasMany(Article::className(), ['id' => 'article_id'])->viaTable('article_actor', ['actor_id' => 'id']);
+    }
+    public function getActorTextProperties(){
+        return $this->hasMany(ActorTextProperty::className(), ['actor_id' => 'id']);
+    }
+    public function getTexts(){
+        return $this->hasMany(Text::className(), ['id' => 'text_id'])->via('actorTextProperties');
+    }
+
+    public function getFirstName($lang_id){
+        return "first_name";
     }
 
     static function saveNewAvActor($key_name, $lang_id, $first_name, $middle_name, $last_name, array $thumb_url = []){
