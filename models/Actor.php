@@ -105,8 +105,8 @@ class Actor extends Model {
 
     private function create($language_id){
         $db = \Yii::$app->db;
-        $did_id_null = is_null($this->id);
         $now = date('Y-m-d H:i:s');
+
         $transaction = $db->beginTransaction();
         try{
             //actorテーブルのinsert
@@ -116,9 +116,7 @@ class Actor extends Model {
                 ':created' => $now,
                 ':updated' => $now,
             ])->execute();
-            if($did_id_null){
-                $this->id = $db->getLastInsertID();
-            }
+            $actor_id = $db->getLastInsertID();
 
             //textテーブルinsert用のcommandオブジェクト生成
             $text_insert_command = $db->createCommand("INSERT INTO text (text, created, updated) VALUES (:text, :created, :updated)");
@@ -143,7 +141,7 @@ class Actor extends Model {
 
                 //actor_text_property関連テーブルに関連レコードを保存。
                 $actor_text_property_insert_command->bindValues([
-                    ':actor_id' => $this->id,
+                    ':actor_id' => $actor_id,
                     ':text_property_id' => $text_property_obj->id,
                     ':language_id' => $language_id,
                     ':text_id' => $text_id,
@@ -154,14 +152,12 @@ class Actor extends Model {
             }
         }catch(\Exception $e){
             $transaction->rollBack();
-            if($did_id_null){
-                $this->id = null;
-            }
             throw $e;
         }
+        $transaction->commit();
+        $this->id = $actor_id;
         $this->created = $now;
         $this->updated = $now;
-        $transaction->commit();
     }
 
     private function update($language_id){
