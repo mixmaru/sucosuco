@@ -15,6 +15,9 @@ class Actor extends Model {
     public $created;
     public $updated;
 
+    //textテーブル由来の要素
+    private $text_properties = ['first_name', 'middle_name', 'last_name',];
+
     public static function getInstanceById($id, $language_id){
         $actor = new Actor();
         $actor->loadFromDbById($id, $language_id);
@@ -68,27 +71,31 @@ class Actor extends Model {
         $db = \Yii::$app->db;
         $did_id_null = is_null($this->id);
         $now = date('Y-m-d H:i:s');
-        $actor_sql = "INSERT INTO actor (type, key_name, created, updated) VALUES (:type, :key_name, :created, :updated)";
-        $param = [
-            ':type' => $this->type,
-            ':key_name' => $this->key_name,
-            ':created' => $now,
-            ':updated' => $now,
-        ];
         $transaction = $db->beginTransaction();
         try{
-            $db->createCommand($actor_sql, $param)->execute();
+            //actorテーブルのinsert
+            $db->createCommand("INSERT INTO actor (type, key_name, created, updated) VALUES (:type, :key_name, :created, :updated)", [
+                ':type' => $this->type,
+                ':key_name' => $this->key_name,
+                ':created' => $now,
+                ':updated' => $now,
+            ])->execute();
             if($did_id_null){
                 $this->id = $db->getLastInsertID();
             }
 
-            //textにfirst_name, middle_name, last_nameを保存して、それぞれのidを保持
+            //textテーブルinsert用のcommandオブジェクト生成
             $text_insert_command = $db->createCommand("INSERT INTO text (text, created, updated) VALUES (:text, :created, :updated)");
+            //actor_text_property関連テーブルinsert用のcommandオブジェクト生成
             $actor_text_property_insert_command = $db->createCommand("INSERT INTO actor_text_property (actor_id, text_property_id, language_id, text_id, created, updated) VALUES (:actor_id, :text_property_id, :language_id, :text_id, :created, :updated)");
-            foreach($this->getTextPropertyNames() as $text_property_name){
+
+            //text_propertyの要素になる、first_name, middle_name, last_nameに対しての処理開始
+            foreach($this->text_properties as $text_property_name){
                 if(is_null($this->$text_property_name)){
                     continue;
                 }
+
+                //textテーブルにレコードを保存。
                 $text_property_obj = TextProperty::getInstanceFromName("actor_".$text_property_name);
                 $text_insert_command->bindValues([
                     ':text' => $this->$text_property_name,
@@ -96,8 +103,9 @@ class Actor extends Model {
                     ':updated' => $now,
                 ]);
                 $text_insert_command->execute();
-                //id取得
-                $text_id = $db->getLastInsertID();
+                $text_id = $db->getLastInsertID();//id取得
+
+                //actor_text_property関連テーブルに関連レコードを保存。
                 $actor_text_property_insert_command->bindValues([
                     ':actor_id' => $this->id,
                     ':text_property_id' => $text_property_obj->id,
@@ -135,13 +143,5 @@ class Actor extends Model {
             throw $e;
         }
         $this->updated = $now;
-    }
-
-    private function getTextPropertyNames(){
-        return [
-            'first_name',
-            'middle_name',
-            'last_name',
-        ];
     }
 }
