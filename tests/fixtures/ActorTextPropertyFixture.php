@@ -12,11 +12,6 @@ class ActorTextPropertyFixture extends ActiveFixture
 {
     public $tableName = "actor_text_property";
 
-//    public $depends = [
-//        'app\tests\fixtures\ActorFixture',
-//        'app\tests\fixtures\TextFixture',
-//    ];
-
     public function unload(){
         $this->resetTable();
         parent::unload();

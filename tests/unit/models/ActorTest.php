@@ -27,9 +27,22 @@ class ActorTest extends \Codeception\Test\Unit
     // tests
     public function testGetInstanceById()
     {
-        $actor = Actor::getInstanceById(1,1);
-//        $actor_array = $actor->attributes;
-////        var_dump($actor_array);
-//        expect($actor_array)->equals(['afdsafs']);
+        //millle_name無しの場合
+        expect_that($actor = Actor::getInstanceById(1,1));
+        expect($actor->id)->equals($this->actor_fixture->data[1]['id']);
+        expect($actor->type)->equals($this->actor_fixture->data[1]['type']);
+        expect($actor->key_name)->equals($this->actor_fixture->data[1]['key_name']);
+        expect($actor->first_name)->equals($this->text_fixture->data[1]['text']);
+        expect($actor->middle_name)->isEmpty();
+        expect($actor->last_name)->equals($this->text_fixture->data[2]['text']);
+
+        //millle_nameありの場合
+        expect_that($actor = Actor::getInstanceById(4,2));
+        expect($actor->id)->equals($this->actor_fixture->data[4]['id']);
+        expect($actor->type)->equals($this->actor_fixture->data[4]['type']);
+        expect($actor->key_name)->equals($this->actor_fixture->data[4]['key_name']);
+        expect($actor->first_name)->equals($this->text_fixture->data[8]['text']);
+        expect($actor->middle_name)->equals($this->text_fixture->data[9]['text']);
+        expect($actor->last_name)->equals($this->text_fixture->data[10]['text']);
     }
 }
