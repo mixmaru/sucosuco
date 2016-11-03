@@ -8,14 +8,9 @@ use yii\test\ActiveFixture;
  * Date: 2016/11/02
  * Time: 21:11
  */
-class ActorTextPropertyFixture extends ActiveFixture
+class TextFixture extends ActiveFixture
 {
-    public $tableName = "actor_text_property";
-
-//    public $depends = [
-//        'app\tests\fixtures\ActorFixture',
-//        'app\tests\fixtures\TextFixture',
-//    ];
+    public $tableName = "text";
 
     public function unload(){
         $this->resetTable();
