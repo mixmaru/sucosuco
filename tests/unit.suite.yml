@@ -8,4 +8,5 @@ modules:
     enabled:
       - Asserts
       - Yii2:
-            part: [orm, email]
+        configFile: 'cofig/text.php'
+        part: [orm, email]
