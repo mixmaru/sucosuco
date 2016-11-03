@@ -6,16 +6,32 @@
  * Time: 21:14
  */
 return [
-    'actor1' => [
+    [
+        'id' => 1,
         'type' => 1,
         'key_name' => 'nozomi_sasaki',
-        'created' => '2016-10-03 00:00:00',
-        'updated' => '2016-10-03 00:00:00',
+        'created' => '2016-11-03 15:46:47',
+        'updated' => '2016-11-03 15:46:47',
     ],
-    'actor2' => [
+    [
+        'id' => 2,
         'type' => 2,
-        'key_name' => 'hamano_daimajin',
-        'created' => '2016-10-04 00:00:00',
-        'updated' => '2016-10-04 00:00:00',
+        'key_name' => 'syuichi_ponta_murakami',
+        'created' => '2016-11-03 15:46:47',
+        'updated' => '2016-11-03 15:46:47',
+    ],
+    [
+        'id' => 3,
+        'type' => 1,
+        'key_name' => 'sizuka_minamoto',
+        'created' => '2016-11-03 15:46:47',
+        'updated' => '2016-11-03 15:46:47',
+    ],
+    [
+        'id' => 4,
+        'type' => 2,
+        'key_name' => 'michel_j_fox',
+        'created' => '2016-11-03 15:46:47',
+        'updated' => '2016-11-03 15:46:47',
     ],
 ];
