@@ -79,7 +79,8 @@ class Actor extends Model {
         $sql = "SELECT ac.id as id, ac.type as type, ac.key_name as key_name, "
             ."MAX( CASE WHEN atp.text_property_id = 1 THEN t.text ELSE NULL END) as first_name, "
             ."MAX( CASE WHEN atp.text_property_id = 2 THEN t.text ELSE NULL END) as middle_name, "
-            ."MAX( CASE WHEN atp.text_property_id = 3 THEN t.text ELSE NULL END) as last_name "
+            ."MAX( CASE WHEN atp.text_property_id = 3 THEN t.text ELSE NULL END) as last_name, "
+            ."ac.created as created, ac.updated as updated "
             ."FROM actor ac "
             ."INNER JOIN actor_text_property atp ON atp.actor_id = ac.id "
             ."INNER JOIN text t ON t.id = atp.text_id "
@@ -87,12 +88,14 @@ class Actor extends Model {
             ."AND atp.language_id = :language_id "
             ."GROUP BY id ";
         $param = $db->createCommand($sql, [':id' => $id, ':language_id' => $language_id ])->queryOne();
-        $this->id = $param['id'];
-        $this->type = $param['type'];
+        $this->id = (int)$param['id'];
+        $this->type = (int)$param['type'];
         $this->key_name = $param['key_name'];
         $this->first_name = $param['first_name'];
         $this->middle_name = $param['middle_name'];
         $this->last_name = $param['last_name'];
+        $this->created = $param['created'];
+        $this->updated = $param['updated'];
     }
 
     public function save($language_id){
